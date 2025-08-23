@@ -1,0 +1,1 @@
+Company,Website,HQ_Country,Regions_Served(NA/EMEA/Both),Provider_Type,Primary_Tags,B2B_Evidence_URL,VILT_Modality_URL,Web_Conferencing,LMS,VILT_Sessions_90d,VILT_Schedule_URL,Instructor_Bench_Notes,Accreditations,Named_Enterprise_Customers(Y/N),Named_Enterprise_Examples,Tier,Confidence,Evidence_URLs,Notes

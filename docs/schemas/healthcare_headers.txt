@@ -1,0 +1,1 @@
+Organization,Region,Type,Facilities,EHR_Vendor,EHR_Lifecycle_Phase,GoLive_Date,Training_Model,VILT_Evidence,Web_Conferencing,LMS,Tier,Confidence,Evidence_URLs,Notes

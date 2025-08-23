@@ -1,0 +1,1 @@
+Company,HQ_Location,Employee_Count_Range,Revenue_Range,Academy_Name,Academy_URL,Program_Structure,VILT_Evidence,Academy_Scope(Employees/Partners/Dealers),Web_Conferencing,LMS,Scale_Details,Tier,Confidence,Evidence_URLs,Notes

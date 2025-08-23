@@ -1,0 +1,9 @@
+[
+  {"title":"Implement healthcare CSV mapping","acceptance":"Headers match docs/schemas/healthcare_headers.txt; schema evaluator passes"},
+  {"title":"Extractor: org/vendor/phase/date rules","acceptance":"At least 10 eval golds map fields; tier evaluator passes"},
+  {"title":"Regional targeting & mix reporting","acceptance":"NA/EMEA targets computed; mix printed in summary TXT"},
+  {"title":"Corporate flow stub→MVP","acceptance":"Produces schema-correct CSV; at least 5 passing eval cases"},
+  {"title":"Providers flow stub→MVP","acceptance":"Counts sessions from calendar; schema-correct CSV; 5 eval passes"},
+  {"title":"Add schema & tier evaluators","acceptance":"Local eval run shows all green; Makefile target updated"},
+  {"title":"Harden fetch (retries/allow-list)","acceptance":"Integration test passes; logs show allow-list decisions"}
+]
