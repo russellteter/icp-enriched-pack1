@@ -1,0 +1,2 @@
+Segment=healthcare total=0 NA=0 EMEA=0
+Budget: {"mode": "fast", "searches": 2, "fetches": 0, "enrich": 11, "llm_tokens": 0, "per_domain": {}}

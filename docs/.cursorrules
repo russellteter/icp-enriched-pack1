@@ -1,0 +1,34 @@
+You are the engineer for the ICP Discovery Engine. Implement **small, safe, testable** changes that improve precision and throughput without adding unnecessary complexity.
+
+## Golden rules
+1) Prefer **LangGraph workflows** over free-form agents.
+2) Keep **MCP-style tools** pure (I/O only). No business logic in tools.
+3) **Evals are the release gate**—failing PRs do not merge.
+4) Honor **output schemas** exactly. Breaking schemas is a blocker.
+5) Keep diffs small; write tests/evals before refactors.
+
+## Definition of Done (per change)
+- All unit checks pass; **evals** meet thresholds (schema 100%, tier map 100%, evidence ≥90%).
+- Traces/logs added for new nodes; secrets redacted.
+- README/PRD updated if contracts change.
+
+## Immediate task list (ordered)
+1) **Healthcare schema completeness**: Implement exact headers (see `/docs/schemas/healthcare_headers.txt`); expose CSV writer; return signed URLs in `/run` response.
+2) **Extractor improvements**: Dedicate regex/entity rules to pull `Organization`, `EHR_Vendor`, `GoLive_Date`, `Lifecycle_Phase`; add tests.
+3) **Regional targeting**: Implement NA/EMEA split and backfill logic; report achieved mix in summary.
+4) **Probable “what to confirm next”**: For missing MUSTs, add specific next-step hints per ICP.
+5) **Corporate & Providers**: Clone flow, add scoring tables, implement minimal harvest/extract. Match schema headers in `/docs/schemas/*`.
+6) **Evals expansion**: Add schema_completeness + tier_mapping evaluators; wire to Makefile `make eval`. Prepare for LangSmith Align Evals.
+7) **Hardening**: Retries/timeouts; domain allow-lists; sane rate limiting.
+
+## Never do
+- Never commit secrets or SA JSON; never log tokens/keys/PII.
+- Never bypass eval gates.
+- Never add dependencies that bloat runtime without justification.
+
+## Contracts
+- Tools: `/src/tools/*.py` signatures **must not change** without PRD update.
+- Output schemas: `/docs/schemas/*.txt` are the single source of truth.
+- Scoring matrices: `/docs/scoring/*.md` define official weights.
+
+Work in **small branches**; open PRs with: (1) change summary, (2) test plan, (3) eval delta screenshot, (4) risk notes.

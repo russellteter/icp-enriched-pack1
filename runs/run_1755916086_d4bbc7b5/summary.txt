@@ -1,0 +1,2 @@
+Segment=healthcare total=0 NA=0 EMEA=0
+Budget: {"mode": "fast", "searches": 1, "fetches": 3, "enrich": 3, "llm_tokens": 0, "per_domain": {"csicompanies.com": 1, "careers.epic.com": 1, "www.piedmont.org": 1}}
