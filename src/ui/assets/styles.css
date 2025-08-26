@@ -1,0 +1,466 @@
+/* ICP Discovery Engine Brand System Stylesheet */
+/* Based on brand specifications: Purple-based palette, Inter typography, professional layout */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap');
+
+/* CSS Custom Properties - Brand Colors */
+:root {
+    /* Primary Brand Colors */
+    --primary-purple: #4739E7;
+    --background-pale: #EDECFD;
+    --text-heading: #0A1849;
+    --text-body: #0E0E1E;
+    --light-purple: #DAD7FA;
+    --yellow-accent: #FFBA00;
+    --card-background: #FFFFFF;
+    
+    /* Additional Brand Variations */
+    --primary-purple-hover: rgba(71, 57, 231, 0.6);
+    --light-purple-header: #F6F6FE;
+    --shadow-subtle: 0 0 4px rgba(0,0,0,0.08);
+    --border-radius: 6px;
+    --border-radius-tag: 12px;
+    
+    /* Typography */
+    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-weight-light: 300;
+    --font-weight-regular: 400;
+    --font-weight-medium: 500;
+    
+    /* Layout System */
+    --baseline: 8px;
+    --gutter: 20px;
+    --outer-margin: 120px;
+    --card-spacing: 20px;
+    --min-button-height: 44px;
+    --circle-size: 28px;
+}
+
+/* Global Typography System */
+.stApp {
+    font-family: var(--font-family);
+    background-color: var(--background-pale);
+    color: var(--text-body);
+}
+
+/* Heading Styles */
+h1, .stApp h1 {
+    font-family: var(--font-family);
+    font-weight: var(--font-weight-light);
+    font-size: 48px;
+    color: var(--text-heading);
+    line-height: 1.2;
+    margin-bottom: calc(var(--baseline) * 3);
+}
+
+h2, .stApp h2 {
+    font-family: var(--font-family);
+    font-weight: var(--font-weight-light);
+    font-size: 32px;
+    color: var(--text-heading);
+    line-height: 1.3;
+    margin-bottom: calc(var(--baseline) * 2);
+}
+
+h3, .stApp h3 {
+    font-family: var(--font-family);
+    font-weight: var(--font-weight-medium);
+    font-size: 20px;
+    color: var(--text-heading);
+    line-height: 1.4;
+    margin-bottom: var(--baseline);
+}
+
+/* Body Text */
+p, .stApp p, .stMarkdown {
+    font-family: var(--font-family);
+    font-weight: var(--font-weight-regular);
+    font-size: 16px;
+    color: var(--text-body);
+    line-height: 1.5;
+    margin-bottom: var(--baseline);
+}
+
+/* Brand Button Styles */
+.stButton > button {
+    font-family: var(--font-family) !important;
+    font-weight: var(--font-weight-medium) !important;
+    font-size: 16px !important;
+    background-color: var(--primary-purple) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: var(--border-radius) !important;
+    min-height: var(--min-button-height) !important;
+    padding: 12px 24px !important;
+    transition: all 0.2s ease !important;
+    box-shadow: var(--shadow-subtle) !important;
+}
+
+.stButton > button:hover {
+    background-color: var(--primary-purple-hover) !important;
+    transform: translateY(-1px) !important;
+}
+
+.stButton > button:focus {
+    box-shadow: 0 0 0 3px rgba(71, 57, 231, 0.3) !important;
+}
+
+/* Secondary Button Variant */
+.secondary-button > button {
+    background-color: var(--card-background) !important;
+    color: var(--primary-purple) !important;
+    border: 2px solid var(--primary-purple) !important;
+}
+
+.secondary-button > button:hover {
+    background-color: var(--light-purple) !important;
+}
+
+/* Card System */
+.brand-card {
+    background-color: var(--card-background);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-subtle);
+    padding: var(--card-spacing);
+    margin-bottom: var(--card-spacing);
+    border: 1px solid rgba(218, 215, 250, 0.3);
+}
+
+.brand-card-header {
+    background-color: var(--light-purple-header);
+    margin: calc(var(--card-spacing) * -1) calc(var(--card-spacing) * -1) var(--card-spacing) calc(var(--card-spacing) * -1);
+    padding: 16px var(--card-spacing);
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+    font-weight: var(--font-weight-medium);
+    color: var(--text-heading);
+}
+
+/* Metrics and Status Indicators */
+.stMetric {
+    background-color: var(--card-background) !important;
+    border-radius: var(--border-radius) !important;
+    box-shadow: var(--shadow-subtle) !important;
+    padding: 16px !important;
+}
+
+.stMetric [data-testid="metric-label"] {
+    font-family: var(--font-family) !important;
+    font-weight: var(--font-weight-medium) !important;
+    color: var(--text-heading) !important;
+    font-size: 14px !important;
+}
+
+.stMetric [data-testid="metric-value"] {
+    font-family: var(--font-family) !important;
+    font-weight: var(--font-weight-medium) !important;
+    color: var(--primary-purple) !important;
+    font-size: 24px !important;
+}
+
+/* Tabs Navigation */
+.stTabs [data-baseweb="tab-list"] {
+    background-color: var(--card-background);
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+    box-shadow: var(--shadow-subtle);
+    gap: 0;
+}
+
+.stTabs [data-baseweb="tab"] {
+    font-family: var(--font-family) !important;
+    font-weight: var(--font-weight-medium) !important;
+    color: var(--text-body) !important;
+    border-radius: var(--border-radius) var(--border-radius) 0 0 !important;
+    padding: 16px 24px !important;
+}
+
+.stTabs [aria-selected="true"] {
+    background-color: var(--primary-purple) !important;
+    color: white !important;
+}
+
+.stTabs [data-baseweb="tab-panel"] {
+    background-color: var(--card-background);
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+    box-shadow: var(--shadow-subtle);
+    padding: var(--card-spacing);
+}
+
+/* Form Elements */
+.stSelectbox label, .stNumberInput label, .stTextInput label {
+    font-family: var(--font-family) !important;
+    font-weight: var(--font-weight-medium) !important;
+    color: var(--text-heading) !important;
+    font-size: 14px !important;
+}
+
+.stSelectbox > div > div, .stNumberInput > div > div, .stTextInput > div > div {
+    border-radius: var(--border-radius) !important;
+    border-color: var(--light-purple) !important;
+}
+
+.stSelectbox > div > div:focus-within, .stNumberInput > div > div:focus-within, .stTextInput > div > div:focus-within {
+    border-color: var(--primary-purple) !important;
+    box-shadow: 0 0 0 2px rgba(71, 57, 231, 0.2) !important;
+}
+
+/* Data Tables */
+.stDataFrame {
+    border-radius: var(--border-radius) !important;
+    overflow: hidden !important;
+    box-shadow: var(--shadow-subtle) !important;
+}
+
+.stDataFrame thead th {
+    background-color: var(--light-purple-header) !important;
+    color: var(--text-heading) !important;
+    font-family: var(--font-family) !important;
+    font-weight: var(--font-weight-medium) !important;
+    font-size: 14px !important;
+    border-bottom: 2px solid var(--primary-purple) !important;
+}
+
+.stDataFrame tbody tr:nth-child(even) {
+    background-color: rgba(237, 236, 253, 0.3) !important;
+}
+
+.stDataFrame tbody tr:hover {
+    background-color: var(--light-purple) !important;
+}
+
+/* Progress Bars */
+.stProgress > div > div > div {
+    background-color: var(--primary-purple) !important;
+}
+
+.stProgress > div > div {
+    background-color: var(--light-purple) !important;
+}
+
+/* Alert Components */
+.stAlert[data-baseweb="notification"] {
+    border-radius: var(--border-radius) !important;
+    font-family: var(--font-family) !important;
+}
+
+.stSuccess {
+    background-color: rgba(75, 181, 67, 0.1) !important;
+    border-left: 4px solid #4bb543 !important;
+}
+
+.stWarning {
+    background-color: rgba(255, 186, 0, 0.1) !important;
+    border-left: 4px solid var(--yellow-accent) !important;
+}
+
+.stError {
+    background-color: rgba(255, 77, 77, 0.1) !important;
+    border-left: 4px solid #ff4d4d !important;
+}
+
+.stInfo {
+    background-color: rgba(71, 57, 231, 0.1) !important;
+    border-left: 4px solid var(--primary-purple) !important;
+}
+
+/* Expander Components */
+.stExpander {
+    border: 1px solid var(--light-purple) !important;
+    border-radius: var(--border-radius) !important;
+    box-shadow: var(--shadow-subtle) !important;
+}
+
+.stExpander summary {
+    background-color: var(--light-purple-header) !important;
+    font-family: var(--font-family) !important;
+    font-weight: var(--font-weight-medium) !important;
+    color: var(--text-heading) !important;
+    padding: 16px !important;
+    border-radius: var(--border-radius) var(--border-radius) 0 0 !important;
+}
+
+/* Sidebar Styling */
+.css-1d391kg {
+    background-color: var(--card-background) !important;
+    border-right: 1px solid var(--light-purple) !important;
+}
+
+/* Status Indicators */
+.status-online {
+    color: #4bb543 !important;
+    font-weight: var(--font-weight-medium) !important;
+}
+
+.status-offline {
+    color: #ff4d4d !important;
+    font-weight: var(--font-weight-medium) !important;
+}
+
+.status-unknown {
+    color: var(--yellow-accent) !important;
+    font-weight: var(--font-weight-medium) !important;
+}
+
+/* Brand Tags */
+.brand-tag {
+    display: inline-block;
+    background-color: var(--light-purple);
+    color: var(--primary-purple);
+    font-family: var(--font-family);
+    font-weight: var(--font-weight-medium);
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: var(--border-radius-tag);
+    margin: 2px 4px;
+}
+
+/* Numbered Circles */
+.brand-circle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--circle-size);
+    height: var(--circle-size);
+    background-color: var(--primary-purple);
+    color: white;
+    border-radius: 50%;
+    font-family: var(--font-family);
+    font-weight: var(--font-weight-medium);
+    font-size: 14px;
+    margin-right: 8px;
+}
+
+/* Highlight Callouts */
+.highlight-callout {
+    background-color: rgba(255, 186, 0, 0.1);
+    border-left: 4px solid var(--yellow-accent);
+    padding: 16px;
+    margin: var(--baseline) 0;
+    border-radius: 0 var(--border-radius) var(--border-radius) 0;
+}
+
+/* Loading Spinner */
+.brand-spinner {
+    border: 3px solid var(--light-purple);
+    border-top: 3px solid var(--primary-purple);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+    margin-right: 8px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Chart Colors (for Plotly/Altair integration) */
+.brand-chart-colors {
+    --chart-primary: var(--primary-purple);
+    --chart-secondary: var(--yellow-accent);
+    --chart-accent1: var(--light-purple);
+    --chart-accent2: rgba(71, 57, 231, 0.3);
+    --chart-accent3: rgba(255, 186, 0, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    :root {
+        --outer-margin: 20px;
+        --card-spacing: 16px;
+    }
+    
+    h1, .stApp h1 {
+        font-size: 32px;
+    }
+    
+    h2, .stApp h2 {
+        font-size: 24px;
+    }
+    
+    .stTabs [data-baseweb="tab"] {
+        padding: 12px 16px !important;
+        font-size: 14px !important;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .stApp {
+        background-color: white !important;
+    }
+    
+    .brand-card {
+        box-shadow: none !important;
+        border: 1px solid #ccc !important;
+    }
+    
+    .stButton {
+        display: none !important;
+    }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+    :root {
+        --shadow-subtle: 0 0 6px rgba(0,0,0,0.3);
+    }
+    
+    .brand-card {
+        border: 2px solid var(--light-purple);
+    }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+    .stButton > button {
+        transition: none !important;
+    }
+    
+    .brand-spinner {
+        animation: none !important;
+    }
+    
+    .stButton > button:hover {
+        transform: none !important;
+    }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--light-purple);
+    border-radius: var(--border-radius);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--primary-purple);
+    border-radius: var(--border-radius);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-purple-hover);
+}
+
+/* Main Container Layout */
+.main-container {
+    max-width: 1920px;
+    margin: 0 auto;
+    padding: 0 var(--outer-margin);
+}
+
+@media (max-width: 1920px) {
+    .main-container {
+        padding: 0 40px;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-container {
+        padding: 0 var(--outer-margin);
+    }
+}

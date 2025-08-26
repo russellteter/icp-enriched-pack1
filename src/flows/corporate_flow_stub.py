@@ -1,12 +1,13 @@
 from langgraph.graph import StateGraph, END
 from pydantic import BaseModel, Field
 from pathlib import Path
-import csv, json, time, uuid
+import csv, json, time, uuid, re
 from src.runtime.config import RunConfig
 from src.runtime.budget import BudgetManager, BudgetExceeded
 from src.tools.webtools import WebSearch, WebFetch
 from src.tools.sheets import SheetsLedger
 from src.tools.explorium import ExploriumClient
+from src.scoring.corporate import score_corporate
 
 
 class CorporateState(BaseModel):
@@ -29,19 +30,78 @@ wf = WebFetch(budget, cfg)
 xl = ExploriumClient()
 
 
+def is_aggregator_domain(url: str) -> bool:
+    from urllib.parse import urlparse
+    parsed = urlparse((url or "").lower())
+    if not parsed.hostname:
+        return False
+    domain = parsed.hostname.replace('www.', '')
+    aggregator_domains = {
+        'forbes.com','bloomberg.com','reuters.com','newsweek.com','medium.com','hbr.org','linkedin.com','twitter.com',
+        'facebook.com','youtube.com','crunchbase.com','gartner.com','g2.com','capterra.com'
+    }
+    if domain in aggregator_domains:
+        return True
+    patterns = ['news', 'blog', 'press', 'media', 'review', 'report', 'magazine']
+    return any(p in domain for p in patterns)
+
+
+def is_primary_domain(url: str, org_name: str) -> bool:
+    from urllib.parse import urlparse
+    parsed = urlparse((url or "").lower())
+    if not parsed.hostname:
+        return False
+    domain = parsed.hostname.replace('www.', '')
+    org_lower = (org_name or "").lower()
+    org_words = re.findall(r"\w+", org_lower)
+    org_words = [w for w in org_words if len(w) > 3]
+    return any(w in domain for w in org_words)
+
+
+def is_listicle_or_directory(title: str, url: str, text: str) -> bool:
+    title_l = (title or "").lower()
+    url_l = (url or "").lower()
+    text_l = (text or "").lower()
+    bad_terms = ["top ", "best ", "list of", "directory", "companies", "providers", "ultimate guide", "how to", "roundup"]
+    if any(t in title_l for t in bad_terms):
+        return True
+    if any(t in url_l for t in ["/blog/", "/news/", "/list", "/top-", "/best-"]):
+        return True
+    if text_l.count("http") > 10 and len(text_l) < 2000:
+        return True
+    return False
+
+
 def seed(state: CorporateState) -> CorporateState:
+    # Enhanced search queries for corporate academies
     queries = [
-        "corporate academy training program",
-        "employee development program corporate",
-        "corporate learning center training",
-        "company academy employee training",
-        "corporate university training program"
+        # Direct academy searches
+        "corporate academy training program site:linkedin.com",
+        "company university employee development",
+        "corporate learning center VILT virtual training",
+        "employee academy online training program",
+        
+        # Large enterprise focus
+        "Fortune 500 corporate training academy",
+        "enterprise learning university program",
+        "corporate development center virtual training",
+        "global academy employee training program",
+        
+        # VILT-specific searches
+        "corporate academy virtual instructor led training",
+        "company university online learning platform",
+        "enterprise training center VILT program",
+        
+        # Award-winning programs
+        "Top 125 corporate university training",
+        "CLO award corporate academy learning",
+        "ATD award corporate learning program"
     ]
     
     all_hits = []
-    for q in queries:
+    for q in queries[:8]:  # Limit to prevent budget overrun
         try:
-            hits = ws.search(q, max_results=20)
+            hits = ws.search(q, max_results=15)
             all_hits.extend(hits)
         except BudgetExceeded as e:
             state.summary = f"Seed aborted: {e}"
@@ -75,16 +135,49 @@ def harvest(state: CorporateState) -> CorporateState:
             break
         except Exception:
             continue
-        text = (page.get("text") or "")[:20000].lower()
+        text = (page.get("text") or "")[:20000]
+        text_lower = text.lower()
         title = s.get("title", "")
+        # Skip low-signal listicles/directories
+        if is_listicle_or_directory(title, page.get("url", ""), text):
+            continue
+        
+        # Clean up organization name
         org = title.split(" - ")[0][:120] if title else page["url"]
+        if any(word in org.lower() for word in ["ultimate guide", "how to", "corporate training"]):
+            from urllib.parse import urlparse
+            parsed = urlparse(page["url"])
+            if parsed.hostname:
+                domain_parts = parsed.hostname.replace('www.', '').split('.')
+                if len(domain_parts) > 1 and domain_parts[0] not in ['blog', 'news']:
+                    org = domain_parts[0].replace('-', ' ').title()
+        
+        # Enhanced VILT detection for corporate context
+        vilt_indicators = []
+        if any(term in text_lower for term in ["virtual instructor led", "vilt", "live online training", "virtual classroom training"]):
+            vilt_indicators.append("explicit VILT training")
+        if any(term in text_lower for term in ["zoom", "microsoft teams", "webex", "virtual classroom", "adobe connect"]):
+            vilt_indicators.append("web conferencing platform")
+        if any(term in text_lower for term in ["live webinar", "real-time training", "synchronous learning", "instructor-led online"]):
+            vilt_indicators.append("live instruction online")
+        if any(term in text_lower for term in ["virtual cohort", "online workshop", "live training session"]):
+            vilt_indicators.append("structured virtual programs")
+        
+        vilt_evidence = "; ".join(vilt_indicators) if vilt_indicators else ""
+        
+        # Enhanced evidence collection for corporate academies
         evidence = {
-            "corporate_org": any(w in text for w in ["corporation", "company", "enterprise", "business", "organization", "firm"]),
-            "training_program": any(w in text for w in ["training program", "learning program", "development program", "academy", "university", "education program"]),
-            "employee_focus": any(w in text for w in ["employee", "staff", "workforce", "personnel", "team member", "associate"]),
-            "structured_learning": any(w in text for w in ["curriculum", "course", "workshop", "seminar", "certification", "skill development"]),
-            "large_scale": any(w in text for w in ["employees", "staff", "workforce", "personnel", "locations", "sites", "departments"]),
+            "corporate_org": any(w in text_lower for w in ["corporation", "company", "enterprise", "business", "organization", "firm", "inc", "llc"]),
+            "training_program": any(w in text_lower for w in ["academy", "university", "learning center", "development center", "training institute", "education program"]),
+            "employee_focus": any(w in text_lower for w in ["employee", "staff", "workforce", "personnel", "team member", "associate", "talent development"]),
+            "structured_learning": any(w in text_lower for w in ["curriculum", "learning path", "cohort", "certification program", "skill development", "competency framework"]),
+            "large_scale": any(w in text_lower for w in ["global", "worldwide", "enterprise", "fortune", "multinational", "thousands of employees"]),
+            "vilt_present": len(vilt_indicators) > 0,
+            "external_scope": any(w in text_lower for w in ["partner", "dealer", "supplier", "vendor", "client training", "external"]),
+            "awards_recognition": any(w in text_lower for w in ["award", "recognition", "top 125", "clo", "atd", "brandon hall", "excellence"]),
             "evidence_url": page["url"],
+            "full_text": text,
+            "vilt_evidence": vilt_evidence,
         }
         out.append({"organization": org, "evidence": evidence, "region": state.region})
     state.candidates = out
@@ -95,58 +188,103 @@ def dedupe_enrich_score(state: CorporateState) -> CorporateState:
     ledger = SheetsLedger()
     seen = ledger.load_orgs(segment="corporate")
     outputs = []
+    
+    # Track regional mix for 80/20 targeting
+    na_count = 0
+    emea_count = 0
+    target_na_ratio = 0.8
+    
     for c in state.candidates:
         if len(outputs) >= state.targetcount:
             break
         org_key = (c["organization"] or "").strip().lower()
         if not org_key or org_key in seen:
             continue
+            
+        # Enrich with Explorium for firmographics and region
+        enriched_data = {}
+        detected_region = "both"
+        
         try:
             budget.assert_can_enrich()
             fx = xl.enrich_firmographics(company=c["organization"])
             budget.tick_enrich()
-            if isinstance(fx, dict):
-                rng = (fx.get("Number of employees range all sites") or "").strip()
-                if rng in ["10001+", "5001-10000"]:
+            if isinstance(fx, dict) and fx:
+                enriched_data = fx
+                # Check size requirements (min 7500 for corporate)
+                if xl.meets_size_requirements(fx, 7500):
                     c["evidence"]["large_scale"] = True
+                # Get region from enrichment
+                detected_region = xl.get_region(fx)
+                c["region"] = detected_region
+                # Add enriched data to evidence
+                c["evidence"]["enriched_data"] = enriched_data
         except BudgetExceeded:
             pass
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"Enrichment failed for {c['organization']}: {e}")
         
-        # Simple scoring for corporate academies
-        score = 0
-        missing = []
-        
-        if c["evidence"].get("corporate_org"):
-            score += 20
-        if c["evidence"].get("training_program"):
-            score += 40
+        # Apply regional targeting logic
+        if state.region != "both":
+            if detected_region != state.region and detected_region != "both":
+                continue
         else:
-            missing.append("training_program")
-        if c["evidence"].get("employee_focus"):
-            score += 20
-        if c["evidence"].get("structured_learning"):
-            score += 15
-        if c["evidence"].get("large_scale"):
-            score += 5
+            # Apply 80/20 NA/EMEA mix
+            if na_count + emea_count > 0:
+                current_na_ratio = na_count / (na_count + emea_count)
+                if detected_region == "na" and current_na_ratio > target_na_ratio + 0.1:
+                    continue
+                elif detected_region == "emea" and current_na_ratio < target_na_ratio - 0.1:
+                    continue
+            
+            if detected_region == "na":
+                na_count += 1
+            elif detected_region == "emea":
+                emea_count += 1
         
-        if score >= 60:
-            tier = "Confirmed"
-        elif score >= 40:
-            tier = "Probable"
-        else:
-            tier = "Needs Confirmation"
-        
-        if tier in ["Confirmed", "Probable"]:
+        # Use proper corporate scoring with MUST-have enforcement
+        sc = score_corporate(c["evidence"])
+
+        # Domain authority validation: Confirmed must be on org primary domain and not aggregator
+        evidence_url = c["evidence"]["evidence_url"]
+        org_name = c["organization"]
+        if sc.tier == "Confirmed":
+            if not is_primary_domain(evidence_url, org_name) or is_aggregator_domain(evidence_url):
+                sc.tier = "Probable"
+
+        if sc.tier in ["Confirmed", "Probable"]:
+            # Add "what to confirm next" for Probable rows
+            notes = f"missing={','.join(sc.missing)}" if sc.missing else ""
+            if sc.tier == "Probable":
+                what_to_confirm = "Locate academy URL on corporate domain (subdomain /academy or /university)"
+                if "named_academy" in sc.missing:
+                    what_to_confirm = "Find corporate academy/university name on company domain"
+                elif "vilt_modality" in sc.missing:
+                    what_to_confirm = "Confirm VILT training delivery in academy programs"
+                elif "size_requirement" in sc.missing:
+                    what_to_confirm = "Verify company size ≥7,500 employees or Fortune status"
+                notes = f"{notes}; Next: {what_to_confirm}" if notes else f"Next: {what_to_confirm}"
+            
             outputs.append({
                 "organization": c["organization"],
                 "segment": "corporate",
-                "region": c["region"],
-                "tier": tier,
-                "score": score,
+                "region": c.get("region", detected_region),
+                "tier": sc.tier,
+                "score": sc.score,
                 "evidence_url": c["evidence"]["evidence_url"],
-                "notes": f"missing={','.join(missing)}" if missing else "",
+                "notes": notes,
+                # Include extracted structured data
+                "academy_name": c["evidence"].get("academy_name", ""),
+                "academy_url": c["evidence"].get("academy_url", ""),
+                "vilt_evidence": c["evidence"].get("vilt_evidence", ""),
+                # Add enriched data
+                "employee_range": enriched_data.get("employee_range", ""),
+                "hq_location": enriched_data.get("hq_location", ""),
+                "revenue_range": enriched_data.get("revenue_range", ""),
+                "web_conferencing": "Yes" if enriched_data.get("has_video_conferencing") else "",
+                "lms": "Yes" if enriched_data.get("has_lms") else "",
+                "is_fortune_500": enriched_data.get("is_fortune_500", False),
+                "is_global_2000": enriched_data.get("is_global_2000", False),
             })
     state.outputs = outputs
     state.budget_snapshot = budget.snapshot()
@@ -162,23 +300,54 @@ def write_outputs(state: CorporateState) -> CorporateState:
     out_dir = Path("runs") / run_id
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    headers = [
-        "Organization","Region","Type","Training_Program","Employee_Focus","Structured_Learning",
-        "Large_Scale","Tier","Confidence","Evidence_URLs","Notes"
-    ]
+    # Use correct schema from docs/schemas/corporate_headers.txt
+    headers_path = Path("docs/schemas/corporate_headers.txt")
+    if headers_path.exists():
+        headers_line = headers_path.read_text(encoding="utf-8").strip()
+        headers = [h.strip() for h in headers_line.split(",") if h.strip()]
+    else:
+        headers = [
+            "Company","HQ_Location","Employee_Count_Range","Revenue_Range","Academy_Name",
+            "Academy_URL","Program_Structure","VILT_Evidence","Academy_Scope(Employees/Partners/Dealers)",
+            "Web_Conferencing","LMS","Scale_Details","Tier","Confidence","Evidence_URLs","Notes"
+        ]
 
     rows = []
     for o in state.outputs:
+        # Determine program structure from evidence
+        program_structure = "Cohort-based" if "cohort" in o.get("vilt_evidence", "").lower() else "Self-paced"
+        if "certification" in o.get("vilt_evidence", "").lower():
+            program_structure += ", Certification Track"
+        
+        # Determine academy scope
+        academy_scope = "Employees"
+        if o.get("is_fortune_500") or o.get("is_global_2000"):
+            academy_scope += ", Partners"
+        
+        # Scale details
+        scale_details = ""
+        if o.get("is_fortune_500"):
+            scale_details = "Fortune 500"
+        elif o.get("is_global_2000"):
+            scale_details = "Global 2000"
+        if o.get("employee_range"):
+            scale_details += f" ({o.get('employee_range')})" if scale_details else o.get("employee_range")
+        
         rows.append({
-            "Organization": o.get("organization",""),
-            "Region": o.get("region",""),
-            "Type": "Corporate Academy",
-            "Training_Program": "",
-            "Employee_Focus": "",
-            "Structured_Learning": "",
-            "Large_Scale": "",
+            "Company": o.get("organization",""),
+            "HQ_Location": o.get("hq_location", ""),
+            "Employee_Count_Range": o.get("employee_range", ""),
+            "Revenue_Range": o.get("revenue_range", ""),
+            "Academy_Name": o.get("academy_name", ""),
+            "Academy_URL": o.get("academy_url", ""),
+            "Program_Structure": program_structure,
+            "VILT_Evidence": o.get("vilt_evidence", ""),
+            "Academy_Scope(Employees/Partners/Dealers)": academy_scope,
+            "Web_Conferencing": o.get("web_conferencing", ""),
+            "LMS": o.get("lms", ""),
+            "Scale_Details": scale_details,
             "Tier": o.get("tier",""),
-            "Confidence": o.get("score",""),
+            "Confidence": str(o.get("score","")),
             "Evidence_URLs": o.get("evidence_url",""),
             "Notes": o.get("notes",""),
         })
@@ -191,8 +360,8 @@ def write_outputs(state: CorporateState) -> CorporateState:
             w.writerow(r)
 
     total = len(rows)
-    na = sum(1 for r in rows if (r.get("Region","") or "").lower() == "na")
-    emea = sum(1 for r in rows if (r.get("Region","") or "").lower() == "emea")
+    na = sum(1 for o in state.outputs if (o.get("region","") or "").lower() == "na")
+    emea = sum(1 for o in state.outputs if (o.get("region","") or "").lower() == "emea")
     mix = {"total": total, "NA": na, "EMEA": emea}
 
     summary_lines = [

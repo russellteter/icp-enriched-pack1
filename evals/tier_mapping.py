@@ -30,7 +30,7 @@ def evaluate_tier_mapping(csv_path: str) -> Dict:
         }
     
     # Valid tier values based on business rules
-    valid_tiers = {"Tier 1", "Tier 2", "Tier 3", "Tier 4", "Tier 5"}
+    valid_tiers = {"Tier 1", "Tier 2", "Tier 3"}
     
     total_rows = 0
     valid_tier_rows = 0

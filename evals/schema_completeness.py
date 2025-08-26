@@ -49,7 +49,10 @@ def evaluate_schema_completeness(csv_path: str, required_fields: Set[str] = None
                 
                 for field in required_fields:
                     value = row.get(field, '').strip()
-                    if not value or value.lower() in ['', 'na', 'n/a', 'none']:
+                    # Special case: "NA" is a valid region code for North America
+                    if field == "Region" and value in ["NA", "EMEA", "BOTH"]:
+                        continue  # Valid region value
+                    elif not value or value.lower() in ['', 'n/a', 'none']:
                         missing_fields_count[field] += 1
                         row_complete = False
                 

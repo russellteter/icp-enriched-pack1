@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  # Backend API Service
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - BUDGET_MAX_SEARCHES=120
+      - BUDGET_MAX_FETCHES=150  
+      - BUDGET_MAX_ENRICH=80
+      - CACHE_TTL_SECS=604800
+      - MODE=fast
+    volumes:
+      - ./runs:/app/runs
+      - ./cache:/app/cache
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # Modern UI Service
+  ui:
+    build:
+      context: .
+      dockerfile: Dockerfile.ui
+    ports:
+      - "8501:8501"
+    depends_on:
+      - api
+    environment:
+      - API_BASE_URL=http://api:8080
+    restart: unless-stopped
+    command: >
+      bash -c "
+        cd /app/src/ui && 
+        streamlit run modern_app.py 
+        --server.port 8501 
+        --server.address 0.0.0.0 
+        --theme.base light 
+        --theme.primaryColor '#4739E7' 
+        --theme.backgroundColor '#f9fafb' 
+        --theme.secondaryBackgroundColor '#ffffff' 
+        --theme.textColor '#111827'
+      "
+
+  # Legacy Dashboard Service (optional)
+  legacy-ui:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8502:8501"
+    depends_on:
+      - api
+    environment:
+      - API_BASE_URL=http://api:8080
+    restart: unless-stopped
+    profiles: ["legacy"]  # Only starts with --profile legacy
+    command: >
+      bash -c "
+        cd /app && 
+        pip install streamlit plotly pandas && 
+        streamlit run src/ui/dashboard.py 
+        --server.port 8501 
+        --server.address 0.0.0.0
+      "
+
+volumes:
+  runs_data:
+  cache_data:

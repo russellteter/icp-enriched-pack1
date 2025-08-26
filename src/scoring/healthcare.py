@@ -31,17 +31,16 @@ def score_healthcare(evidence: dict) -> ScoreResult:
     if evidence.get("large_scale"):
         score += 5
 
-    # TEMPORARY: Relaxed requirements for validation
-    # Original: must_ok = all(evidence.get(k) for k in ["ehr_activity", "vilt_present"])
-    # Now: Only require one of the two key indicators
-    must_ok = evidence.get("ehr_activity") or evidence.get("vilt_present")
+    # RESTORED: Proper MUST-have enforcement for healthcare ICP
+    # Both EHR activity and VILT presence are required for Tier 1
+    must_ok = all(evidence.get(k) for k in ["ehr_activity", "vilt_present"])
 
-    if must_ok and score >= 60:  # Lowered from 90
-        tier = "Confirmed"
-    elif score >= 40:  # Lowered from 70
-        tier = "Probable"
+    if must_ok and score >= 90:  # Restored proper threshold
+        tier = "Tier 1"
+    elif score >= 70:  # Restored proper threshold
+        tier = "Tier 2"
     else:
-        tier = "Needs Confirmation"
+        tier = "Tier 3"
 
     return ScoreResult(score=score, tier=tier, missing=missing)
 

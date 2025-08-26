@@ -1,0 +1,44 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+
+# Environment
+.env
+.env.*
+
+# OS/Editor
+.DS_Store
+*.swp
+*.swo
+.agents/
+.cache/
+
+# Logs and metrics
+server*.log
+*.log
+metrics/
+
+# Generated data/artifacts
+cache/
+runs/
+exports/
+dashboard_screenshots/
+
+# Streamlit
+.streamlit/
+
+# Build/test
+build/
+dist/
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Docker
+*.pid
+
+

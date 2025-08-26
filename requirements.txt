@@ -11,3 +11,14 @@ redis>=5.0.0
 opentelemetry-api>=1.20.0
 opentelemetry-sdk>=1.20.0
 opentelemetry-exporter-otlp>=1.20.0
+google-auth>=2.16.0
+google-auth-oauthlib>=1.0.0
+google-auth-httplib2>=0.1.0
+gspread>=5.12.0
+openai>=1.0.0
+
+# Enhanced UI dependencies
+streamlit>=1.28.0
+pandas>=2.0.0
+plotly>=5.15.0
+openpyxl>=3.1.0

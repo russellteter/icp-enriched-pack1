@@ -1,0 +1,3 @@
+Organization,Region,Type,Facilities,EHR_Vendor,EHR_Lifecycle_Phase,GoLive_Date,Training_Model,VILT_Evidence,Web_Conferencing,LMS,Tier,Confidence,Evidence_URLs,Notes
+Mayo Clinic,NA,Hospital System,5,Epic,Go-Live,2024-05-05,Super User Model,virtual instructor-led training,Yes,Yes,Tier 1,95,https://www.mayoclinic.org/epic-go-live,Test entry for validation
+Cleveland Clinic,EMEA,Health System,10,Cerner,Implementation,,Train-the-Trainer,live virtual sessions,,Yes,Tier 2,75,https://clevelandclinic.org/ehr-training,Another test entry
